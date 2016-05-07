@@ -1,0 +1,91 @@
+neKtar Installation Guide
+
+Prerequisites:
+Raspberry Pi (Model B or higher)
+Latest Raspbian image
+SD Card 4GB or greater
+Keyboard/Mouse
+Ethernet cable or WiFi dongle
+Knowledge of Linux system and GNU command line tools
+
+On host machine download the image and use dd to put the image on the SD card
+	dd bs=1m if=latest_raspbian.img of=/dev/disk2
+Keep in mind that the output file will change according to your host machine allocation
+Using dd will take around 55 minutes to put the image on the SD card
+
+Boot Raspberry Pi with SD card that has been newly imaged
+
+Change keyboard settings. Default setting is English (UK)
+
+Change pi user password
+
+If using Ethernet cable to connect to your network skip this step.
+Otherwise add WiFi settings to  to /etc/wpa_supplicant/wpa_supplicant.conf
+	sudo nano /etc/wpa_supplicant/wpa_supplicant.conf
+	#add the following to the configuration file, adding the appropriate SSID and PSK (Pre Shared Key)
+	network={
+    ssid="The_ESSID_from_earlier"
+    psk="Your_wifi_password"
+	}
+
+Make OS partition larger using the rasp-config command
+
+Install dependencies:
+sudo apt-get update
+sudo apt-get install python python-openssl python-gevent libevent-dev python-dev build-essential make
+sudo apt-get install python-argparse python-chardet python-requests python-sqlalchemy python-lxml
+sudo apt-get install python-beautifulsoup python-pip python-dev python-numpy python-setuptools
+sudo apt-get install python-numpy-dev python-scipy libatlas-dev g++ git php5 php5-dev liblapack-dev gfortran
+sudo apt-get install libxml2-dev libxslt-dev
+Install the distribute package manually
+	https://pypi.python.org/packages/source/d/distribute/
+
+Install tcpdump
+	sudo apt-get install tcpdump
+
+Install and configure PHP sandbox:
+	sudo apt-get install git-core
+	cd /opt
+	sudo git clone git://github.com/glastopf/BFR.git
+	cd BFR
+	sudo phpize
+	sudo ./configure –enable-bfr
+	sudo make && make install
+Append the search path to bfr.so and add it to php.ini file:
+	sudo echo “zend_extension = /usr/lib/php5/20100525+lfs/bfr.so” >> /etc/php5/cli/php.ini
+
+Install the latest release of Glastopf using pip:
+	sudo pip install glastopf
+
+Prepare your honeypot environment
+	cd /opt
+	sudo mkdir myhoneypot
+
+Stop the Apache service so that the web application honeypot could listen to port 80:
+	sudo service apache2 stop
+
+Before starting tcpdump and Glastopf log into your home router and put the IP address of the Raspberry Pi into a DMZ.
+
+Executing tcpdump
+	#Change pcap name
+	tcpdump -w DD_MM_YY.pcap -i eth0
+I saved my pcap to an USB drive that I plugged into the Raspberry Pi. 
+
+In /opt/myhoneypot
+	sudo glastopf-runner
+
+A new default glastopf.cfg will be created in /opt/myhoneypot directory This config file can be customized to your liking. You can use the default settings.
+
+From another machine on the same network as the Raspberry Pi, open a web browser, and enter the IP address of Raspberry Pi into the browser. Interact with the webpage. 
+
+Back on the Raspberry Pi you should see new lines being added in the terminal where glastopf-runner is running
+
+You can now run the Glastopf honeypot as long as you like. When complete you can review the Glastopf logs in /opt/myhoneypot/logs and also open your packet capture from tcpdump to inspect the actually traffic. Be sure to disable your DMZ when complete.
+
+Optional: Use Snort to analyze the traffic realtime or offline
+
+**Results will vary**
+
+Citations:
+http://resources.infosecinstitute.com/glastopf-pi-a-simple-yet-cool-web-honeypot-for-your-raspberry-pi/
+https://github.com/mushorg/glastopf/blob/master/docs/source/installation/installation_raspberry.rst
