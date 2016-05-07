@@ -1,2 +1,2 @@
 # neKtar
-Installation info for Glastopf on a Raspberry Pi
+Installation information for installing and running Glastopf on a Raspberry Pi
